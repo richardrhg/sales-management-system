@@ -161,7 +161,7 @@ function renderTable(sales) {
         tbody = '<tr><td colspan="8" class="text-center">目前沒有銷售紀錄</td></tr>';
     } else {
         sales.forEach(function(sale) {
-            const subtotal = sale.price * sale.quantity;
+                const subtotal = (sale.price || 0) * sale.quantity;
             tbody += `
                 <tr>
                     <td>${sale.id}</td>

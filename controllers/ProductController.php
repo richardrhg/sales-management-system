@@ -93,8 +93,8 @@ class ProductController {
         if (empty($data['name'])) {
             throw new Exception('產品名稱為必填欄位');
         }
-        if (!isset($data['price']) || $data['price'] < 0) {
-            throw new Exception('價格為必填欄位且必須大於等於 0');
+        if (!isset($data['price']) || !is_numeric($data['price']) || $data['price'] < 0) {
+            throw new Exception('價格為必填欄位且必須為大於等於 0 的有效數字');
         }
         if (empty($data['category'])) {
             throw new Exception('類別為必填欄位');

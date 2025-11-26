@@ -123,7 +123,7 @@ $(document).ready(function() {
         if (response.success) {
             let html = '';
             response.data.forEach(function(row, index) {
-                const revenue = row.price * row.total_quantity;
+                const revenue = (row.price || 0) * row.total_quantity;
                 html += `
                     <tr>
                         <td><span class="badge bg-${index < 3 ? 'warning' : 'secondary'}">${index + 1}</span></td>

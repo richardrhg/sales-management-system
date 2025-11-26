@@ -132,6 +132,7 @@
         
         // 格式化金額
         function formatCurrency(amount) {
+            if (amount == null) return 'NT$0';
             return new Intl.NumberFormat('zh-TW', {
                 style: 'currency',
                 currency: 'TWD',

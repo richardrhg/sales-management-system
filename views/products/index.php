@@ -60,7 +60,7 @@
                         <label for="price" class="form-label">價格 <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text">NT$</span>
-                            <input type="number" class="form-control" id="price" min="0" step="1" required>
+                            <input type="number" class="form-control" id="price" min="0" step="0.01" required>
                             <div class="invalid-feedback">請輸入有效的價格</div>
                         </div>
                     </div>
