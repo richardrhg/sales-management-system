@@ -1,8 +1,16 @@
 -- 員工銷售管理系統資料庫初始化
 -- Employee Sales Management System Database Initialization
 
+-- 設定字符編碼
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
+
 CREATE DATABASE IF NOT EXISTS sales_management CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE sales_management;
+
+-- 確保使用 UTF-8 字符集
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
 
 -- 員工資料表
 CREATE TABLE IF NOT EXISTS employees (

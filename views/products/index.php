@@ -96,155 +96,188 @@
 </div>
 
 <script>
-let editMode = false;
-
-$(document).ready(function() {
-    loadProducts();
-});
-
-function loadProducts() {
-    $.ajax({
-        url: 'api/products.php',
-        method: 'GET',
-        success: function(response) {
-            if (response.success) {
-                renderTable(response.data);
-            } else {
-                showAlert(response.message, 'danger');
-            }
-        },
-        error: function() {
-            showAlert('載入產品資料失敗', 'danger');
+// 等待 jQuery 加載完成後初始化
+(function() {
+    let editMode = false;
+    
+    function initProducts() {
+        if (typeof jQuery === 'undefined') {
+            setTimeout(initProducts, 100);
+            return;
         }
-    });
-}
-
-function renderTable(products) {
-    let tbody = '';
-    if (products.length === 0) {
-        tbody = '<tr><td colspan="6" class="text-center">目前沒有產品資料</td></tr>';
-    } else {
-        products.forEach(function(prod) {
-            const statusBadge = prod.status === 'active' 
-                ? '<span class="badge bg-success">上架</span>'
-                : '<span class="badge bg-secondary">下架</span>';
-            tbody += `
-                <tr>
-                    <td>${prod.id}</td>
-                    <td>${prod.name}</td>
-                    <td>${formatCurrency(prod.price)}</td>
-                    <td>${prod.category}</td>
-                    <td>${statusBadge}</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning" onclick="editProduct(${prod.id})">
-                            <i class="bi bi-pencil"></i> 編輯
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteProduct(${prod.id})">
-                            <i class="bi bi-trash"></i> 刪除
-                        </button>
-                    </td>
-                </tr>
-            `;
+        
+        $(document).ready(function() {
+            window.loadProducts();
         });
     }
-    $('#productTable tbody').html(tbody);
-}
-
-function openAddModal() {
-    editMode = false;
-    $('#modalTitle').text('新增產品');
-    $('#productForm')[0].reset();
-    $('#productId').val('');
-    $('#productForm').removeClass('was-validated');
-}
-
-function editProduct(id) {
-    editMode = true;
-    $('#modalTitle').text('編輯產品');
-    $('#productForm').removeClass('was-validated');
     
-    $.ajax({
-        url: `api/products.php?id=${id}`,
-        method: 'GET',
-        success: function(response) {
-            if (response.success) {
-                const prod = response.data;
-                $('#productId').val(prod.id);
-                $('#name').val(prod.name);
-                $('#price').val(prod.price);
-                $('#category').val(prod.category);
-                $('#status').val(prod.status);
-                
-                const modal = new bootstrap.Modal(document.getElementById('productModal'));
-                modal.show();
-            } else {
-                showAlert(response.message, 'danger');
+    // 全局函數
+    window.loadProducts = function() {
+        $.ajax({
+            url: 'api/products.php',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    window.renderTable(response.data);
+                } else {
+                    showAlert('載入失敗: ' + (response.message || '未知錯誤'), 'danger');
+                    $('#productTable tbody').html('<tr><td colspan="6" class="text-center text-danger">載入失敗: ' + (response.message || '未知錯誤') + '</td></tr>');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', {
+                    status: xhr.status,
+                    statusText: xhr.statusText,
+                    responseText: xhr.responseText,
+                    error: error
+                });
+                let errorMsg = '載入產品資料失敗';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg += ': ' + xhr.responseJSON.message;
+                } else if (xhr.responseText) {
+                    errorMsg += ': ' + xhr.responseText.substring(0, 100);
+                }
+                showAlert(errorMsg, 'danger');
+                $('#productTable tbody').html('<tr><td colspan="6" class="text-center text-danger">' + errorMsg + '</td></tr>');
             }
-        },
-        error: function() {
-            showAlert('載入產品資料失敗', 'danger');
-        }
-    });
-}
+        });
+    };
 
-function saveProduct() {
-    const form = document.getElementById('productForm');
-    
-    if (!form.checkValidity()) {
-        form.classList.add('was-validated');
-        return;
-    }
-    
-    const data = {
-        name: $('#name').val(),
-        price: parseFloat($('#price').val()),
-        category: $('#category').val(),
-        status: $('#status').val()
+    window.renderTable = function(products) {
+        let tbody = '';
+        if (products.length === 0) {
+            tbody = '<tr><td colspan="6" class="text-center">目前沒有產品資料</td></tr>';
+        } else {
+            products.forEach(function(prod) {
+                const statusBadge = prod.status === 'active' 
+                    ? '<span class="badge bg-success">上架</span>'
+                    : '<span class="badge bg-secondary">下架</span>';
+                tbody += `
+                    <tr>
+                        <td>${prod.id}</td>
+                        <td>${prod.name}</td>
+                        <td>${formatCurrency(prod.price)}</td>
+                        <td>${prod.category}</td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editProduct(${prod.id})">
+                                <i class="bi bi-pencil"></i> 編輯
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteProduct(${prod.id})">
+                                <i class="bi bi-trash"></i> 刪除
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        $('#productTable tbody').html(tbody);
     };
     
-    const id = $('#productId').val();
-    const url = id ? `api/products.php?id=${id}` : 'api/products.php';
-    const method = id ? 'PUT' : 'POST';
+    window.openAddModal = function() {
+        editMode = false;
+        $('#modalTitle').text('新增產品');
+        $('#productForm')[0].reset();
+        $('#productId').val('');
+        $('#productForm').removeClass('was-validated');
+    };
     
-    $.ajax({
-        url: url,
-        method: method,
-        contentType: 'application/json',
-        data: JSON.stringify(data),
-        success: function(response) {
-            if (response.success) {
-                showAlert(response.message, 'success');
-                bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
-                loadProducts();
-            } else {
-                showAlert(response.message, 'danger');
-            }
-        },
-        error: function(xhr) {
-            const response = xhr.responseJSON || { message: '操作失敗' };
-            showAlert(response.message, 'danger');
-        }
-    });
-}
-
-function deleteProduct(id) {
-    confirmDelete(function() {
+    window.editProduct = function(id) {
+        editMode = true;
+        $('#modalTitle').text('編輯產品');
+        $('#productForm').removeClass('was-validated');
+        
         $.ajax({
             url: `api/products.php?id=${id}`,
-            method: 'DELETE',
+            method: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    const prod = response.data;
+                    $('#productId').val(prod.id);
+                    $('#name').val(prod.name);
+                    $('#price').val(prod.price);
+                    $('#category').val(prod.category);
+                    $('#status').val(prod.status);
+                    
+                    const modal = new bootstrap.Modal(document.getElementById('productModal'));
+                    modal.show();
+                } else {
+                    showAlert(response.message, 'danger');
+                }
+            },
+            error: function() {
+                showAlert('載入產品資料失敗', 'danger');
+            }
+        });
+    };
+    
+    window.saveProduct = function() {
+        const form = document.getElementById('productForm');
+        
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return;
+        }
+        
+        const data = {
+            name: $('#name').val(),
+            price: parseFloat($('#price').val()),
+            category: $('#category').val(),
+            status: $('#status').val()
+        };
+        
+        const id = $('#productId').val();
+        const url = id ? `api/products.php?id=${id}` : 'api/products.php';
+        const method = id ? 'PUT' : 'POST';
+        
+        $.ajax({
+            url: url,
+            method: method,
+            contentType: 'application/json',
+            data: JSON.stringify(data),
             success: function(response) {
                 if (response.success) {
                     showAlert(response.message, 'success');
-                    loadProducts();
+                    bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+                    window.loadProducts();
                 } else {
                     showAlert(response.message, 'danger');
                 }
             },
             error: function(xhr) {
-                const response = xhr.responseJSON || { message: '刪除失敗' };
+                const response = xhr.responseJSON || { message: '操作失敗' };
                 showAlert(response.message, 'danger');
             }
         });
-    });
-}
+    };
+    
+    window.deleteProduct = function(id) {
+        confirmDelete(function() {
+            $.ajax({
+                url: `api/products.php?id=${id}`,
+                method: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        window.loadProducts();
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function(xhr) {
+                    const response = xhr.responseJSON || { message: '刪除失敗' };
+                    showAlert(response.message, 'danger');
+                }
+            });
+        });
+    };
+    
+    // 初始化
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initProducts);
+    } else {
+        initProducts();
+    }
+})();
 </script>

@@ -65,24 +65,46 @@ $type = $_GET['type'] ?? '';
     </div>
 </div>
 <script>
-$(document).ready(function() {
-    $.get('api/reports.php?type=employee_sales_total', function(response) {
-        if (response.success) {
-            let html = '';
-            response.data.forEach(function(row, index) {
-                html += `
-                    <tr>
-                        <td><span class="badge bg-${index < 3 ? 'warning' : 'secondary'}">${index + 1}</span></td>
-                        <td>${row.name}</td>
-                        <td>${row.department}</td>
-                        <td><strong>${row.total_quantity}</strong></td>
-                    </tr>
-                `;
-            });
-            $('#reportTable').html(html || '<tr><td colspan="4" class="text-center">目前沒有資料</td></tr>');
+// 等待 jQuery 加載完成後初始化
+(function() {
+    function initReport() {
+        if (typeof jQuery === 'undefined') {
+            setTimeout(initReport, 100);
+            return;
         }
-    });
-});
+        
+        $(document).ready(function() {
+            $.get('api/reports.php?type=employee_sales_total', function(response) {
+                if (response.success) {
+                    let html = '';
+                    response.data.forEach(function(row, index) {
+                        html += `
+                            <tr>
+                                <td><span class="badge bg-${index < 3 ? 'warning' : 'secondary'}">${index + 1}</span></td>
+                                <td>${row.name}</td>
+                                <td>${row.department}</td>
+                                <td><strong>${row.total_quantity}</strong></td>
+                            </tr>
+                        `;
+                    });
+                    $('#reportTable').html(html || '<tr><td colspan="4" class="text-center">目前沒有資料</td></tr>');
+                } else {
+                    $('#reportTable').html('<tr><td colspan="4" class="text-center text-danger">載入失敗: ' + (response.message || '未知錯誤') + '</td></tr>');
+                }
+            }).fail(function(xhr) {
+                console.error('載入報表失敗:', xhr);
+                $('#reportTable').html('<tr><td colspan="4" class="text-center text-danger">載入報表失敗</td></tr>');
+            });
+        });
+    }
+    
+    // 初始化
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initReport);
+    } else {
+        initReport();
+    }
+})();
 </script>
 
 <?php elseif ($type === 'product_sales_total'): ?>
@@ -118,27 +140,49 @@ $(document).ready(function() {
     </div>
 </div>
 <script>
-$(document).ready(function() {
-    $.get('api/reports.php?type=product_sales_total', function(response) {
-        if (response.success) {
-            let html = '';
-            response.data.forEach(function(row, index) {
-                const revenue = (row.price || 0) * row.total_quantity;
-                html += `
-                    <tr>
-                        <td><span class="badge bg-${index < 3 ? 'warning' : 'secondary'}">${index + 1}</span></td>
-                        <td>${row.name}</td>
-                        <td>${row.category}</td>
-                        <td>${formatCurrency(row.price)}</td>
-                        <td><strong>${row.total_quantity}</strong></td>
-                        <td class="text-success"><strong>${formatCurrency(revenue)}</strong></td>
-                    </tr>
-                `;
-            });
-            $('#reportTable').html(html || '<tr><td colspan="6" class="text-center">目前沒有資料</td></tr>');
+// 等待 jQuery 加載完成後初始化
+(function() {
+    function initReport() {
+        if (typeof jQuery === 'undefined') {
+            setTimeout(initReport, 100);
+            return;
         }
-    });
-});
+        
+        $(document).ready(function() {
+            $.get('api/reports.php?type=product_sales_total', function(response) {
+                if (response.success) {
+                    let html = '';
+                    response.data.forEach(function(row, index) {
+                        const revenue = (row.price || 0) * row.total_quantity;
+                        html += `
+                            <tr>
+                                <td><span class="badge bg-${index < 3 ? 'warning' : 'secondary'}">${index + 1}</span></td>
+                                <td>${row.name}</td>
+                                <td>${row.category}</td>
+                                <td>${formatCurrency(row.price)}</td>
+                                <td><strong>${row.total_quantity}</strong></td>
+                                <td class="text-success"><strong>${formatCurrency(revenue)}</strong></td>
+                            </tr>
+                        `;
+                    });
+                    $('#reportTable').html(html || '<tr><td colspan="6" class="text-center">目前沒有資料</td></tr>');
+                } else {
+                    $('#reportTable').html('<tr><td colspan="6" class="text-center text-danger">載入失敗: ' + (response.message || '未知錯誤') + '</td></tr>');
+                }
+            }).fail(function(xhr) {
+                console.error('載入報表失敗:', xhr);
+                $('#reportTable').html('<tr><td colspan="6" class="text-center text-danger">載入報表失敗</td></tr>');
+            });
+        });
+    }
+    
+    // 初始化
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initReport);
+    } else {
+        initReport();
+    }
+})();
 </script>
 
 <?php elseif ($type === 'employee_sales_avg'): ?>
@@ -173,25 +217,47 @@ $(document).ready(function() {
     </div>
 </div>
 <script>
-$(document).ready(function() {
-    $.get('api/reports.php?type=employee_sales_avg', function(response) {
-        if (response.success) {
-            let html = '';
-            response.data.forEach(function(row, index) {
-                html += `
-                    <tr>
-                        <td><span class="badge bg-${index < 3 ? 'warning' : 'secondary'}">${index + 1}</span></td>
-                        <td>${row.name}</td>
-                        <td>${row.department}</td>
-                        <td>${row.sales_count}</td>
-                        <td><strong>${parseFloat(row.avg_quantity).toFixed(2)}</strong></td>
-                    </tr>
-                `;
-            });
-            $('#reportTable').html(html || '<tr><td colspan="5" class="text-center">目前沒有資料</td></tr>');
+// 等待 jQuery 加載完成後初始化
+(function() {
+    function initReport() {
+        if (typeof jQuery === 'undefined') {
+            setTimeout(initReport, 100);
+            return;
         }
-    });
-});
+        
+        $(document).ready(function() {
+            $.get('api/reports.php?type=employee_sales_avg', function(response) {
+                if (response.success) {
+                    let html = '';
+                    response.data.forEach(function(row, index) {
+                        html += `
+                            <tr>
+                                <td><span class="badge bg-${index < 3 ? 'warning' : 'secondary'}">${index + 1}</span></td>
+                                <td>${row.name}</td>
+                                <td>${row.department}</td>
+                                <td>${row.sales_count}</td>
+                                <td><strong>${parseFloat(row.avg_quantity).toFixed(2)}</strong></td>
+                            </tr>
+                        `;
+                    });
+                    $('#reportTable').html(html || '<tr><td colspan="5" class="text-center">目前沒有資料</td></tr>');
+                } else {
+                    $('#reportTable').html('<tr><td colspan="5" class="text-center text-danger">載入失敗: ' + (response.message || '未知錯誤') + '</td></tr>');
+                }
+            }).fail(function(xhr) {
+                console.error('載入報表失敗:', xhr);
+                $('#reportTable').html('<tr><td colspan="5" class="text-center text-danger">載入報表失敗</td></tr>');
+            });
+        });
+    }
+    
+    // 初始化
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initReport);
+    } else {
+        initReport();
+    }
+})();
 </script>
 
 <?php elseif ($type === 'product_sales_avg'): ?>
@@ -227,26 +293,48 @@ $(document).ready(function() {
     </div>
 </div>
 <script>
-$(document).ready(function() {
-    $.get('api/reports.php?type=product_sales_avg', function(response) {
-        if (response.success) {
-            let html = '';
-            response.data.forEach(function(row, index) {
-                html += `
-                    <tr>
-                        <td><span class="badge bg-${index < 3 ? 'warning' : 'secondary'}">${index + 1}</span></td>
-                        <td>${row.name}</td>
-                        <td>${row.category}</td>
-                        <td>${formatCurrency(row.price)}</td>
-                        <td>${row.sales_count}</td>
-                        <td><strong>${parseFloat(row.avg_quantity).toFixed(2)}</strong></td>
-                    </tr>
-                `;
-            });
-            $('#reportTable').html(html || '<tr><td colspan="6" class="text-center">目前沒有資料</td></tr>');
+// 等待 jQuery 加載完成後初始化
+(function() {
+    function initReport() {
+        if (typeof jQuery === 'undefined') {
+            setTimeout(initReport, 100);
+            return;
         }
-    });
-});
+        
+        $(document).ready(function() {
+            $.get('api/reports.php?type=product_sales_avg', function(response) {
+                if (response.success) {
+                    let html = '';
+                    response.data.forEach(function(row, index) {
+                        html += `
+                            <tr>
+                                <td><span class="badge bg-${index < 3 ? 'warning' : 'secondary'}">${index + 1}</span></td>
+                                <td>${row.name}</td>
+                                <td>${row.category}</td>
+                                <td>${formatCurrency(row.price)}</td>
+                                <td>${row.sales_count}</td>
+                                <td><strong>${parseFloat(row.avg_quantity).toFixed(2)}</strong></td>
+                            </tr>
+                        `;
+                    });
+                    $('#reportTable').html(html || '<tr><td colspan="6" class="text-center">目前沒有資料</td></tr>');
+                } else {
+                    $('#reportTable').html('<tr><td colspan="6" class="text-center text-danger">載入失敗: ' + (response.message || '未知錯誤') + '</td></tr>');
+                }
+            }).fail(function(xhr) {
+                console.error('載入報表失敗:', xhr);
+                $('#reportTable').html('<tr><td colspan="6" class="text-center text-danger">載入報表失敗</td></tr>');
+            });
+        });
+    }
+    
+    // 初始化
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initReport);
+    } else {
+        initReport();
+    }
+})();
 </script>
 
 <?php elseif ($type === 'sales_by_employee'): ?>
@@ -296,39 +384,61 @@ $(document).ready(function() {
     </div>
 </div>
 <script>
-$(document).ready(function() {
-    $('#searchForm').on('submit', function(e) {
-        e.preventDefault();
-        const name = $('#employeeName').val().trim();
-        if (!name) return;
+// 等待 jQuery 加載完成後初始化
+(function() {
+    function initReport() {
+        if (typeof jQuery === 'undefined') {
+            setTimeout(initReport, 100);
+            return;
+        }
         
-        $.get('api/reports.php?type=sales_by_employee&name=' + encodeURIComponent(name), function(response) {
-            if (response.success) {
-                let html = '';
-                if (response.data.length === 0) {
-                    html = '<tr><td colspan="8" class="text-center text-warning">查無符合條件的銷售紀錄</td></tr>';
-                } else {
-                    response.data.forEach(function(row) {
-                        const subtotal = row.price * row.quantity;
-                        html += `
-                            <tr>
-                                <td>${row.id}</td>
-                                <td>${row.employee_name}</td>
-                                <td>${row.department}</td>
-                                <td>${row.product_name}</td>
-                                <td>${row.quantity}</td>
-                                <td>${formatCurrency(row.price)}</td>
-                                <td class="text-success">${formatCurrency(subtotal)}</td>
-                                <td>${row.sale_date}</td>
-                            </tr>
-                        `;
-                    });
-                }
-                $('#reportTable').html(html);
-            }
+        $(document).ready(function() {
+            $('#searchForm').on('submit', function(e) {
+                e.preventDefault();
+                const name = $('#employeeName').val().trim();
+                if (!name) return;
+                
+                $.get('api/reports.php?type=sales_by_employee&name=' + encodeURIComponent(name), function(response) {
+                    if (response.success) {
+                        let html = '';
+                        if (response.data.length === 0) {
+                            html = '<tr><td colspan="8" class="text-center text-warning">查無符合條件的銷售紀錄</td></tr>';
+                        } else {
+                            response.data.forEach(function(row) {
+                                const subtotal = row.price * row.quantity;
+                                html += `
+                                    <tr>
+                                        <td>${row.id}</td>
+                                        <td>${row.employee_name}</td>
+                                        <td>${row.department}</td>
+                                        <td>${row.product_name}</td>
+                                        <td>${row.quantity}</td>
+                                        <td>${formatCurrency(row.price)}</td>
+                                        <td class="text-success">${formatCurrency(subtotal)}</td>
+                                        <td>${row.sale_date}</td>
+                                    </tr>
+                                `;
+                            });
+                        }
+                        $('#reportTable').html(html);
+                    } else {
+                        $('#reportTable').html('<tr><td colspan="8" class="text-center text-danger">查詢失敗: ' + (response.message || '未知錯誤') + '</td></tr>');
+                    }
+                }).fail(function(xhr) {
+                    console.error('查詢失敗:', xhr);
+                    $('#reportTable').html('<tr><td colspan="8" class="text-center text-danger">查詢失敗</td></tr>');
+                });
+            });
         });
-    });
-});
+    }
+    
+    // 初始化
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initReport);
+    } else {
+        initReport();
+    }
+})();
 </script>
 
 <?php elseif ($type === 'recommended_products'): ?>
@@ -367,36 +477,60 @@ $(document).ready(function() {
     </div>
 </div>
 <script>
-$(document).ready(function() {
-    $.get('api/reports.php?type=recommended_products', function(response) {
-        if (response.success) {
-            const overallAvg = parseFloat(response.data.overall_avg).toFixed(2);
-            $('#avgInfo').html(`<i class="bi bi-info-circle"></i> 全產品平均銷售量：<strong>${overallAvg}</strong>，以下為銷售量超過平均或 Top 5 的必推商品`);
-            
-            let html = '';
-            response.data.products.forEach(function(row, index) {
-                const reason = row.total_quantity > response.data.overall_avg 
-                    ? '<span class="badge bg-success">超過平均</span>'
-                    : '<span class="badge bg-primary">Top 5</span>';
-                html += `
-                    <tr>
-                        <td>
-                            <span class="badge bg-warning text-dark" style="font-size: 1.2rem;">
-                                <i class="bi bi-trophy"></i> ${index + 1}
-                            </span>
-                        </td>
-                        <td><strong>${row.name}</strong></td>
-                        <td>${row.category}</td>
-                        <td>${formatCurrency(row.price)}</td>
-                        <td><span class="badge bg-danger" style="font-size: 1rem;">${row.total_quantity}</span></td>
-                        <td>${reason}</td>
-                    </tr>
-                `;
-            });
-            $('#reportTable').html(html || '<tr><td colspan="6" class="text-center">目前沒有資料</td></tr>');
+// 等待 jQuery 加載完成後初始化
+(function() {
+    function initReport() {
+        if (typeof jQuery === 'undefined') {
+            setTimeout(initReport, 100);
+            return;
         }
-    });
-});
+        
+        $(document).ready(function() {
+            $.get('api/reports.php?type=recommended_products', function(response) {
+                if (response.success) {
+                    const overallAvg = parseFloat(response.data.overall_avg).toFixed(2);
+                    $('#avgInfo').html(`<i class="bi bi-info-circle"></i> 全產品平均銷售量：<strong>${overallAvg}</strong>，以下為銷售量超過平均或 Top 5 的必推商品`);
+                    
+                    let html = '';
+                    response.data.products.forEach(function(row, index) {
+                        const reason = row.total_quantity > response.data.overall_avg 
+                            ? '<span class="badge bg-success">超過平均</span>'
+                            : '<span class="badge bg-primary">Top 5</span>';
+                        html += `
+                            <tr>
+                                <td>
+                                    <span class="badge bg-warning text-dark" style="font-size: 1.2rem;">
+                                        <i class="bi bi-trophy"></i> ${index + 1}
+                                    </span>
+                                </td>
+                                <td><strong>${row.name}</strong></td>
+                                <td>${row.category}</td>
+                                <td>${formatCurrency(row.price)}</td>
+                                <td><span class="badge bg-danger" style="font-size: 1rem;">${row.total_quantity}</span></td>
+                                <td>${reason}</td>
+                            </tr>
+                        `;
+                    });
+                    $('#reportTable').html(html || '<tr><td colspan="6" class="text-center">目前沒有資料</td></tr>');
+                } else {
+                    $('#avgInfo').html('<div class="alert alert-danger">載入失敗: ' + (response.message || '未知錯誤') + '</div>');
+                    $('#reportTable').html('<tr><td colspan="6" class="text-center text-danger">載入失敗</td></tr>');
+                }
+            }).fail(function(xhr) {
+                console.error('載入報表失敗:', xhr);
+                $('#avgInfo').html('<div class="alert alert-danger">載入報表失敗</div>');
+                $('#reportTable').html('<tr><td colspan="6" class="text-center text-danger">載入報表失敗</td></tr>');
+            });
+        });
+    }
+    
+    // 初始化
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initReport);
+    } else {
+        initReport();
+    }
+})();
 </script>
 
 <?php else: ?>

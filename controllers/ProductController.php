@@ -26,17 +26,18 @@ class ProductController {
             switch ($method) {
                 case 'GET':
                     if ($action === 'active') {
-                        echo json_encode(['success' => true, 'data' => $this->model->getActive()]);
+                        echo json_encode(['success' => true, 'data' => $this->model->getActive()], JSON_UNESCAPED_UNICODE);
                     } elseif ($id) {
                         $product = $this->model->getById($id);
                         if ($product) {
-                            echo json_encode(['success' => true, 'data' => $product]);
+                            echo json_encode(['success' => true, 'data' => $product], JSON_UNESCAPED_UNICODE);
                         } else {
                             http_response_code(404);
-                            echo json_encode(['success' => false, 'message' => '找不到產品']);
+                            echo json_encode(['success' => false, 'message' => '找不到產品'], JSON_UNESCAPED_UNICODE);
                         }
                     } else {
-                        echo json_encode(['success' => true, 'data' => $this->model->getAll()]);
+                        $data = $this->model->getAll();
+                        echo json_encode(['success' => true, 'data' => $data], JSON_UNESCAPED_UNICODE);
                     }
                     break;
                     
@@ -82,7 +83,11 @@ class ProductController {
             }
         } catch (Exception $e) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            echo json_encode([
+                'success' => false, 
+                'message' => $e->getMessage(),
+                'error' => $e->getTraceAsString()
+            ], JSON_UNESCAPED_UNICODE);
         }
     }
     

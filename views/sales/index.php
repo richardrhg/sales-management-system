@@ -90,21 +90,31 @@
 </div>
 
 <script>
-let editMode = false;
-let employees = [];
-let products = [];
-
-$(document).ready(function() {
-    // 載入所有資料
-    loadEmployees();
-    loadProducts();
-    loadSales();
+// 等待 jQuery 加載完成後初始化
+(function() {
+    let editMode = false;
+    let employees = [];
+    let products = [];
     
-    // 設定預設日期為今天
-    $('#sale_date').val(new Date().toISOString().split('T')[0]);
-});
-
-function loadEmployees() {
+    function initSales() {
+        if (typeof jQuery === 'undefined') {
+            setTimeout(initSales, 100);
+            return;
+        }
+        
+        $(document).ready(function() {
+            // 載入所有資料
+            loadEmployees();
+            loadProducts();
+            loadSales();
+            
+            // 設定預設日期為今天
+            $('#sale_date').val(new Date().toISOString().split('T')[0]);
+        });
+    }
+    
+    // 全局函數
+    window.loadEmployees = function() {
     $.ajax({
         url: 'api/employees.php?action=active',
         method: 'GET',
@@ -119,9 +129,9 @@ function loadEmployees() {
             }
         }
     });
-}
-
-function loadProducts() {
+    };
+    
+    window.loadProducts = function() {
     $.ajax({
         url: 'api/products.php?action=active',
         method: 'GET',
@@ -136,9 +146,9 @@ function loadProducts() {
             }
         }
     });
-}
-
-function loadSales() {
+    };
+    
+    window.loadSales = function() {
     $.ajax({
         url: 'api/sales.php',
         method: 'GET',
@@ -183,19 +193,19 @@ function renderTable(sales) {
             `;
         });
     }
-    $('#saleTable tbody').html(tbody);
-}
-
-function openAddModal() {
+        $('#saleTable tbody').html(tbody);
+    };
+    
+    window.openAddModal = function() {
     editMode = false;
     $('#modalTitle').text('新增銷售紀錄');
     $('#saleForm')[0].reset();
     $('#saleId').val('');
     $('#sale_date').val(new Date().toISOString().split('T')[0]);
-    $('#saleForm').removeClass('was-validated');
-}
-
-function editSale(id) {
+        $('#saleForm').removeClass('was-validated');
+    };
+    
+    window.editSale = function(id) {
     editMode = true;
     $('#modalTitle').text('編輯銷售紀錄');
     $('#saleForm').removeClass('was-validated');
@@ -222,9 +232,9 @@ function editSale(id) {
             showAlert('載入銷售資料失敗', 'danger');
         }
     });
-}
-
-function saveSale() {
+    };
+    
+    window.saveSale = function() {
     const form = document.getElementById('saleForm');
     
     if (!form.checkValidity()) {
@@ -262,9 +272,9 @@ function saveSale() {
             showAlert(response.message, 'danger');
         }
     });
-}
-
-function deleteSale(id) {
+    };
+    
+    window.deleteSale = function(id) {
     confirmDelete(function() {
         $.ajax({
             url: `api/sales.php?id=${id}`,
@@ -283,5 +293,13 @@ function deleteSale(id) {
             }
         });
     });
-}
+    };
+    
+    // 初始化
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSales);
+    } else {
+        initSales();
+    }
+})();
 </script>

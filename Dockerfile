@@ -4,8 +4,16 @@
 
 FROM php:8.2-apache
 
+# 安裝系統依賴（mbstring 需要 oniguruma）
+RUN apt-get update && apt-get install -y \
+    libonig-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # 安裝 PHP 擴展
-RUN docker-php-ext-install pdo pdo_mysql
+RUN docker-php-ext-install pdo pdo_mysql mbstring
+
+# 設定 PHP 預設字符編碼
+RUN echo "default_charset = \"UTF-8\"" >> /usr/local/etc/php/conf.d/docker-php.ini
 
 # 啟用 Apache mod_rewrite
 RUN a2enmod rewrite

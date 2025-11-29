@@ -91,11 +91,20 @@
                 
                 <?php
                 $page = $_GET['page'] ?? 'dashboard';
-                $viewPath = __DIR__ . "/../{$page}/index.php";
+                
+                // 處理頁面路由
+                if ($page === 'dashboard' || empty($page)) {
+                    // 載入儀表板
+                    $viewPath = __DIR__ . "/../dashboard.php";
+                } else {
+                    // 載入其他頁面
+                    $viewPath = __DIR__ . "/../{$page}/index.php";
+                }
                 
                 if (file_exists($viewPath)) {
                     include $viewPath;
                 } else {
+                    // 如果找不到頁面，載入儀表板
                     include __DIR__ . "/../dashboard.php";
                 }
                 ?>
@@ -145,6 +154,60 @@
             const date = new Date(dateStr);
             return date.toLocaleDateString('zh-TW');
         }
+        
+        // Dashboard 專用腳本（在 jQuery 加載後執行）
+        $(document).ready(function() {
+            // 只在 dashboard 頁面執行
+            if ($('#recommendedProducts').length > 0) {
+                // 載入必推商品
+                $.get('api/reports.php?type=recommended_products', function(response) {
+                    if (response.success) {
+                        let html = '<ul class="list-group">';
+                        response.data.products.forEach(function(product, index) {
+                            html += `
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <span class="badge bg-primary rounded-pill me-2">${index + 1}</span>
+                                        ${product.name}
+                                    </span>
+                                    <span class="badge bg-success rounded-pill">銷售量: ${product.total_quantity}</span>
+                                </li>
+                            `;
+                        });
+                        html += '</ul>';
+                        html += `<p class="text-muted mt-2 small">全產品平均銷售量: ${parseFloat(response.data.overall_avg).toFixed(2)}</p>`;
+                        $('#recommendedProducts').html(html);
+                    }
+                }).fail(function(xhr) {
+                    console.error('載入必推商品失敗:', xhr);
+                    $('#recommendedProducts').html('<p class="text-danger">載入失敗</p>');
+                });
+                
+                // 載入員工銷售排行
+                $.get('api/reports.php?type=employee_sales_total', function(response) {
+                    if (response.success) {
+                        let html = '<ul class="list-group">';
+                        response.data.slice(0, 5).forEach(function(employee, index) {
+                            const badgeClass = index === 0 ? 'bg-warning' : (index === 1 ? 'bg-secondary' : 'bg-info');
+                            html += `
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <span class="badge ${badgeClass} rounded-pill me-2">${index + 1}</span>
+                                        ${employee.name} (${employee.department})
+                                    </span>
+                                    <span class="badge bg-primary rounded-pill">總銷售量: ${employee.total_quantity}</span>
+                                </li>
+                            `;
+                        });
+                        html += '</ul>';
+                        $('#salesRanking').html(html);
+                    }
+                }).fail(function(xhr) {
+                    console.error('載入銷售排行失敗:', xhr);
+                    $('#salesRanking').html('<p class="text-danger">載入失敗</p>');
+                });
+            }
+        });
     </script>
 </body>
 </html>

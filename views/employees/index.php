@@ -100,158 +100,192 @@
 </div>
 
 <script>
-let editMode = false;
-
-$(document).ready(function() {
-    loadEmployees();
-});
-
-function loadEmployees() {
-    $.ajax({
-        url: 'api/employees.php',
-        method: 'GET',
-        success: function(response) {
-            if (response.success) {
-                renderTable(response.data);
-            } else {
-                showAlert(response.message, 'danger');
-            }
-        },
-        error: function() {
-            showAlert('載入員工資料失敗', 'danger');
+// 等待 jQuery 加載完成後初始化
+(function() {
+    let editMode = false;
+    
+    function initEmployees() {
+        if (typeof jQuery === 'undefined') {
+            setTimeout(initEmployees, 100);
+            return;
         }
-    });
-}
-
-function renderTable(employees) {
-    let tbody = '';
-    if (employees.length === 0) {
-        tbody = '<tr><td colspan="7" class="text-center">目前沒有員工資料</td></tr>';
-    } else {
-        employees.forEach(function(emp) {
-            const statusBadge = emp.status === 'active' 
-                ? '<span class="badge bg-success">在職</span>'
-                : '<span class="badge bg-secondary">離職</span>';
-            tbody += `
-                <tr>
-                    <td>${emp.id}</td>
-                    <td>${emp.name}</td>
-                    <td>${emp.department}</td>
-                    <td>${emp.phone || '-'}</td>
-                    <td>${emp.hire_date}</td>
-                    <td>${statusBadge}</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning" onclick="editEmployee(${emp.id})">
-                            <i class="bi bi-pencil"></i> 編輯
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteEmployee(${emp.id})">
-                            <i class="bi bi-trash"></i> 刪除
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-    }
-    $('#employeeTable tbody').html(tbody);
-}
-
-function openAddModal() {
-    editMode = false;
-    $('#modalTitle').text('新增員工');
-    $('#employeeForm')[0].reset();
-    $('#employeeId').val('');
-    $('#employeeForm').removeClass('was-validated');
-}
-
-function editEmployee(id) {
-    editMode = true;
-    $('#modalTitle').text('編輯員工');
-    $('#employeeForm').removeClass('was-validated');
-    
-    $.ajax({
-        url: `api/employees.php?id=${id}`,
-        method: 'GET',
-        success: function(response) {
-            if (response.success) {
-                const emp = response.data;
-                $('#employeeId').val(emp.id);
-                $('#name').val(emp.name);
-                $('#department').val(emp.department);
-                $('#phone').val(emp.phone);
-                $('#hire_date').val(emp.hire_date);
-                $('#status').val(emp.status);
-                
-                const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
-                modal.show();
+        
+        // 在 jQuery 加載後定義全局函數
+        window.loadEmployees = function() {
+            $.ajax({
+                url: 'api/employees.php',
+                method: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        window.renderTable(response.data);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('載入員工資料失敗', 'danger');
+                }
+            });
+        };
+        
+        window.renderTable = function(employees) {
+            let tbody = '';
+            if (employees.length === 0) {
+                tbody = '<tr><td colspan="7" class="text-center">目前沒有員工資料</td></tr>';
             } else {
-                showAlert(response.message, 'danger');
+                employees.forEach(function(emp) {
+                    const statusBadge = emp.status === 'active' 
+                        ? '<span class="badge bg-success">在職</span>'
+                        : '<span class="badge bg-secondary">離職</span>';
+                    tbody += `
+                        <tr>
+                            <td>${emp.id}</td>
+                            <td>${emp.name}</td>
+                            <td>${emp.department}</td>
+                            <td>${emp.phone || '-'}</td>
+                            <td>${emp.hire_date}</td>
+                            <td>${statusBadge}</td>
+                            <td>
+                                <button class="btn btn-sm btn-warning" onclick="editEmployee(${emp.id})">
+                                    <i class="bi bi-pencil"></i> 編輯
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteEmployee(${emp.id})">
+                                    <i class="bi bi-trash"></i> 刪除
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
             }
-        },
-        error: function() {
-            showAlert('載入員工資料失敗', 'danger');
-        }
-    });
-}
-
-function saveEmployee() {
-    const form = document.getElementById('employeeForm');
-    
-    if (!form.checkValidity()) {
-        form.classList.add('was-validated');
-        return;
-    }
-    
-    const data = {
-        name: $('#name').val(),
-        department: $('#department').val(),
-        phone: $('#phone').val(),
-        hire_date: $('#hire_date').val(),
-        status: $('#status').val()
-    };
-    
-    const id = $('#employeeId').val();
-    const url = id ? `api/employees.php?id=${id}` : 'api/employees.php';
-    const method = id ? 'PUT' : 'POST';
-    
-    $.ajax({
-        url: url,
-        method: method,
-        contentType: 'application/json',
-        data: JSON.stringify(data),
-        success: function(response) {
-            if (response.success) {
-                showAlert(response.message, 'success');
-                bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide();
-                loadEmployees();
-            } else {
-                showAlert(response.message, 'danger');
+            $('#employeeTable tbody').html(tbody);
+        };
+        
+        window.openAddModal = function() {
+            if (typeof jQuery === 'undefined') {
+                console.error('jQuery 尚未加載');
+                return;
             }
-        },
-        error: function(xhr) {
-            const response = xhr.responseJSON || { message: '操作失敗' };
-            showAlert(response.message, 'danger');
-        }
-    });
-}
+            editMode = false;
+            $('#modalTitle').text('新增員工');
+            $('#employeeForm')[0].reset();
+            $('#employeeId').val('');
+            $('#employeeForm').removeClass('was-validated');
+        };
+        
+        window.editEmployee = function(id) {
+            if (typeof jQuery === 'undefined') {
+                console.error('jQuery 尚未加載');
+                return;
+            }
+            editMode = true;
+            $('#modalTitle').text('編輯員工');
+            $('#employeeForm').removeClass('was-validated');
+            
+            $.ajax({
+                url: `api/employees.php?id=${id}`,
+                method: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        const emp = response.data;
+                        $('#employeeId').val(emp.id);
+                        $('#name').val(emp.name);
+                        $('#department').val(emp.department);
+                        $('#phone').val(emp.phone);
+                        $('#hire_date').val(emp.hire_date);
+                        $('#status').val(emp.status);
+                        
+                        const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
+                        modal.show();
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('載入員工資料失敗', 'danger');
+                }
+            });
+        };
 
-function deleteEmployee(id) {
-    confirmDelete(function() {
-        $.ajax({
-            url: `api/employees.php?id=${id}`,
-            method: 'DELETE',
-            success: function(response) {
-                if (response.success) {
-                    showAlert(response.message, 'success');
-                    loadEmployees();
-                } else {
+        window.saveEmployee = function() {
+            if (typeof jQuery === 'undefined') {
+                console.error('jQuery 尚未加載');
+                return;
+            }
+            const form = document.getElementById('employeeForm');
+            
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+            
+            const data = {
+                name: $('#name').val(),
+                department: $('#department').val(),
+                phone: $('#phone').val(),
+                hire_date: $('#hire_date').val(),
+                status: $('#status').val()
+            };
+            
+            const id = $('#employeeId').val();
+            const url = id ? `api/employees.php?id=${id}` : 'api/employees.php';
+            const method = id ? 'PUT' : 'POST';
+            
+            $.ajax({
+                url: url,
+                method: method,
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide();
+                        window.loadEmployees();
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function(xhr) {
+                    const response = xhr.responseJSON || { message: '操作失敗' };
                     showAlert(response.message, 'danger');
                 }
-            },
-            error: function(xhr) {
-                const response = xhr.responseJSON || { message: '刪除失敗' };
-                showAlert(response.message, 'danger');
+            });
+        };
+
+        window.deleteEmployee = function(id) {
+            if (typeof jQuery === 'undefined') {
+                console.error('jQuery 尚未加載');
+                return;
             }
+            confirmDelete(function() {
+                $.ajax({
+                    url: `api/employees.php?id=${id}`,
+                    method: 'DELETE',
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            window.loadEmployees();
+                        } else {
+                            showAlert(response.message, 'danger');
+                        }
+                    },
+                    error: function(xhr) {
+                        const response = xhr.responseJSON || { message: '刪除失敗' };
+                        showAlert(response.message, 'danger');
+                    }
+                });
+            });
+        };
+        
+        $(document).ready(function() {
+            window.loadEmployees();
         });
-    });
-}
+    }
+    
+    // 初始化
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initEmployees);
+    } else {
+        initEmployees();
+    }
+})();
 </script>

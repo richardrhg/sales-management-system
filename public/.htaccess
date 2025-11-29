@@ -1,0 +1,24 @@
+# 員工銷售管理系統 - Public 目錄配置
+# Employee Sales Management System - Public Directory Configuration
+
+# 啟用 Rewrite Engine
+RewriteEngine On
+
+# 確保 PHP 文件被正確處理
+<FilesMatch \.php$>
+    SetHandler application/x-httpd-php
+</FilesMatch>
+
+# 處理 API 請求
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^api/(.*)$ api/$1 [L]
+
+# 處理所有其他請求，導向 index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?page=$1 [L,QSA]
+
+# 設定字符編碼
+AddDefaultCharset UTF-8
+

@@ -23,6 +23,8 @@ class Database {
                 PDO::ATTR_EMULATE_PREPARES => false,
             ];
             $this->connection = new PDO($dsn, DB_USER, DB_PASS, $options);
+            // 確保連接使用 UTF-8 字符集
+            $this->connection->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
         } catch (PDOException $e) {
             throw new Exception("資料庫連線失敗: " . $e->getMessage());
         }
